@@ -35,23 +35,31 @@ public class QuantityMeasurementApp {
             this.unit = unit;
         }
 
-        // Convert to base unit (feet)
         private double toFeet() {
             return unit.toFeet(value);
         }
 
-        // ===== UC6 ADD METHOD =====
+        // =========================
+        // UC6 (default unit = first operand)
+        // =========================
         public Quantity add(Quantity other) {
-            if (other == null) {
-                throw new IllegalArgumentException("Second operand cannot be null");
+            return add(other, this.unit);
+        }
+
+        // =========================
+        // UC7 (explicit target unit)
+        // =========================
+        public Quantity add(Quantity other, LengthUnit targetUnit) {
+
+            if (other == null || targetUnit == null) {
+                throw new IllegalArgumentException("Arguments cannot be null");
             }
 
             double sumInFeet = this.toFeet() + other.toFeet();
 
-            // result in FIRST operand's unit
-            double resultValue = this.unit.fromFeet(sumInFeet);
+            double resultValue = targetUnit.fromFeet(sumInFeet);
 
-            return new Quantity(resultValue, this.unit);
+            return new Quantity(resultValue, targetUnit);
         }
 
         @Override
@@ -60,6 +68,7 @@ public class QuantityMeasurementApp {
             if (!(obj instanceof Quantity)) return false;
 
             Quantity other = (Quantity) obj;
+
             return Math.abs(this.toFeet() - other.toFeet()) < 1e-6;
         }
 
@@ -69,14 +78,19 @@ public class QuantityMeasurementApp {
         }
     }
 
+    // ===== STATIC API (OPTIONAL BUT EXPECTED) =====
+    public static Quantity add(Quantity q1, Quantity q2, LengthUnit targetUnit) {
+        return q1.add(q2, targetUnit);
+    }
+
     // ===== MAIN =====
     public static void main(String[] args) {
 
         Quantity q1 = new Quantity(1.0, LengthUnit.FEET);
         Quantity q2 = new Quantity(12.0, LengthUnit.INCH);
 
-        Quantity result = q1.add(q2);
-
-        System.out.println(result); // 2.0 FEET
+        System.out.println(q1.add(q2, LengthUnit.FEET));   // 2.0 FEET
+        System.out.println(q1.add(q2, LengthUnit.INCH));   // 24.0 INCH
+        System.out.println(q1.add(q2, LengthUnit.YARD));   // ~0.667 YARD
     }
 }
